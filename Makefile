@@ -1,0 +1,2 @@
+dev:
+	py main.py
