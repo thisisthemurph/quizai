@@ -3,6 +3,17 @@
 
 {% block content %}
 <main>
-    <p class="text-xl">This is the home page</p>
+    <section class="flex flex-col gap-4 w-full py-16 mx-auto bg-yellow-300">
+        <form class="w-4/5 mx-auto" hx-post="/create" hx-target="#quiz">
+            <label for="q">What would you like to make a quiz about?</label>
+            <div class="flex gap-4">
+                <input type="text" id="q" name="q" class="w-full rounded" />
+                <input type="number" id="qn" name="qn" value="10" class="w-16" />
+                <button type="submit" class="bg-slate-700 text-white px-6 py-3">Create</button>
+            </div>
+        </form>
+    </section>
+
+    <section id="quiz" class="bg-slate-50 p-8 pt-16"></section>
 </main>
 {% endblock %}
