@@ -1,9 +1,7 @@
 import json
-
 import openai
-import pydantic
 
-
+from models import Quiz
 
 prompt = """You are a  quiz master. You will be provided with a topic followed by a | character and then the number of questions required. Produce a quiz consisting of the given number of questions, each with 4 possible answers. Only one of the answers should be correct. The response should be in JSON format. The response should only include the JSON.
 
@@ -25,36 +23,6 @@ The json should have the following format:
     }
   ]
 }"""
-
-
-class Question(pydantic.BaseModel):
-    text: str
-    options: list[str]
-    correct_answer: str
-    correct_answer_index: int
-
-    def __len__(self):
-        return len(self.options)
-
-    def __str__(self):
-        return self.text
-
-    def __repr__(self):
-        return f"Question(text={self.text})"
-
-
-class Quiz(pydantic.BaseModel):
-    prompt: str
-    questions: list[Question]
-
-    def __len__(self):
-        return len(self.questions)
-
-    def __str__(self):
-        return self.prompt
-
-    def __repr__(self):
-        return f"Quiz(prompt={self.prompt})"
 
 
 class QuizBuilder:
