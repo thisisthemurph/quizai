@@ -45,6 +45,8 @@ async def create_quiz(request: Request, form: CreateQuizForm = Depends(CreateQui
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
 
+    # TODO: Add quiz rto database
+
     ctx = dict(
         request=request,
         prompt=quiz.prompt,
