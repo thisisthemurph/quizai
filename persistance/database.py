@@ -74,6 +74,7 @@ class Database:
             CONSTRAINT fk_quizzes
                 FOREIGN KEY(quiz_id)
                     REFERENCES quizzes(id)
+                        ON DELETE CASCADE
         );"""
 
         create_options_table = """
@@ -85,6 +86,7 @@ class Database:
             CONSTRAINT fk_questions
                 FOREIGN KEY(question_id)
                     REFERENCES questions(id)
+                        ON DELETE CASCADE
         );"""
 
         with DBSession(self) as db:
