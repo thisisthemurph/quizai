@@ -118,6 +118,3 @@ class DBSession:
             self.conn.close()
         if self.cursor:
             self.cursor.close()
-
-
-
