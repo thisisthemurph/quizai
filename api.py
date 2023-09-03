@@ -11,11 +11,18 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from persistance.database import Database, DBSession
+from persistance.quiz_repo import QuizRepo
 from quiz_builder import QuizBuilder
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+def quiz_repo_param() -> QuizRepo:
+    db = Database.default()
+    return QuizRepo(db)
 
 
 class CreateQuizForm(BaseModel):
@@ -41,11 +48,14 @@ async def index_page(request: Request):
 
 
 @app.post("/create", response_class=HTMLResponse)
-async def create_quiz(request: Request, form: CreateQuizForm = Depends(CreateQuizForm.form)):
+async def create_quiz(
+        request: Request,
+        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+        form: CreateQuizForm = Depends(CreateQuizForm.form)):
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
 
-    # TODO: Add quiz rto database
+    quiz_repo.create(quiz)
 
     ctx = dict(
         request=request,
@@ -57,7 +67,10 @@ async def create_quiz(request: Request, form: CreateQuizForm = Depends(CreateQui
 
 
 async def main():
-    load_dotenv()
+    # Initialize the database for the initial run
+    __db = Database.default()
+    __db.create_tables_if_not_exists()
+
     config = uvicorn.Config("api:app", port=8000, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
