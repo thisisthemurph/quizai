@@ -9,9 +9,9 @@ class QuizRepo:
     def create(self, quiz: Quiz) -> str:
         """Creates a placeholder entry for a Quiz and returns the id"""
         quiz_id: str
-        quiz_stmt = "INSERT INTO quizzes (prompt) VALUES (%s) RETURNING id"
-        question_stmt = "INSERT INTO questions (quiz_id, text) VALUES (%s, %s) RETURNING id"
-        options_stmt = "INSERT INTO options (question_id, text, correct) VALUES (%s, %s, %s)"
+        quiz_stmt = "INSERT INTO quizzes (prompt) VALUES (%s) RETURNING id;"
+        question_stmt = "INSERT INTO questions (quiz_id, text) VALUES (%s, %s) RETURNING id;"
+        options_stmt = "INSERT INTO options (question_id, text, correct) VALUES (%s, %s, %s);"
 
         with DBSession(self.database) as db:
             db.cursor.execute(quiz_stmt, (quiz.prompt,))
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     q2 = Question(text="What is 2 + 2", options=["1", "2", "3", "4"], correct_answer="4", correct_answer_index=3)
     test_quiz = Quiz(prompt="Can you do basic maths?", questions=[q1, q2])
 
-    db = Database.default()
+    db = Database.default(create_tables=True)
     repo = QuizRepo(db)
     identifier = repo.create(test_quiz)
     print(identifier, type(identifier))
