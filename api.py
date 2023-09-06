@@ -42,6 +42,14 @@ class CreateQuizForm(BaseModel):
         return cls(q=q, qn=qn)
 
 
+class SubmitAnswerForm(BaseModel):
+    option: int
+
+    @classmethod
+    def form(cls, option: Annotated[int, Form()]):
+        return cls(option=option)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
     return templates.TemplateResponse("index.html", dict(request=request))
@@ -53,14 +61,42 @@ async def create_quiz(
         quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
         form: CreateQuizForm = Depends(CreateQuizForm.form)):
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
-    quiz = builder.make_quiz(form.prompt, num_questions=form.count)
 
-    quiz_repo.create(quiz)
+    quiz = builder.make_quiz(form.prompt, num_questions=form.count)
+    saved_quiz = quiz_repo.create(quiz)
+    first_question = saved_quiz.questions[0]
 
     ctx = dict(
         request=request,
+        quiz_id=saved_quiz.id,
+        prompt=saved_quiz.prompt,
+        question=first_question,
+    )
+
+    return templates.TemplateResponse("partials/question.html", ctx)
+
+
+@app.post("/quiz/{quiz_id}/{question_id}/submit", response_class=HTMLResponse)
+async def submit_question_answer(
+        request: Request,
+        quiz_id: str,
+        question_id: int,
+        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+        form: SubmitAnswerForm = Depends(SubmitAnswerForm.form)):
+    def get_question_index(lst, value):
+        for i, question in enumerate(lst):
+            if question.id == value:
+                return i
+        return -1
+
+    quiz = quiz_repo.answer(quiz_id, question_id, form.option)
+    current_question_index = get_question_index(quiz.questions, question_id)
+
+    ctx = dict(
+        request=request,
+        quiz_id=quiz.id,
         prompt=quiz.prompt,
-        question=quiz.questions[0],
+        question=quiz.questions[current_question_index + 1],
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)

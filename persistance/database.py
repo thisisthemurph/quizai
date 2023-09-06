@@ -52,10 +52,6 @@ class Database:
 
         return conn
 
-    def connect_with_cursor(self) -> tuple[extensions.connection, extensions.cursor]:
-        conn = self.connect()
-        return conn, conn.cursor()
-
     def create_tables_if_not_exists(self):
         create_uuid_extension = """CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\""""
 
@@ -71,6 +67,7 @@ class Database:
             id serial PRIMARY KEY,
             quiz_id uuid,
             text TEXT NOT NULL,
+            answered_correct BOOLEAN DEFAULT NULL,
             CONSTRAINT fk_quizzes
                 FOREIGN KEY(quiz_id)
                     REFERENCES quizzes(id)
@@ -104,13 +101,18 @@ class ConnectionCursor:
 
 
 class DBSession:
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, cursor_factory=None):
         self.db = db
         self.conn = None
         self.cursor = None
+        self.cursor_factory = cursor_factory
 
     def __enter__(self):
-        self.conn, self.cursor = self.db.connect_with_cursor()
+        self.conn = self.db.connect()
+        if self.cursor_factory is None:
+            self.cursor = self.conn.cursor()
+        else:
+            self.cursor = self.conn.cursor(cursor_factory=self.cursor_factory)
         return ConnectionCursor(self.conn, self.cursor)
 
     def __exit__(self, exc_type, exc_val, exc_tb):

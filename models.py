@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 
 class Question(BaseModel):
+    id: int | None = None
     text: str
     options: list[str]
     correct_answer: str
@@ -18,6 +19,7 @@ class Question(BaseModel):
 
 
 class Quiz(BaseModel):
+    id: str | None = None
     prompt: str
     questions: list[Question]
 
