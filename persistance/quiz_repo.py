@@ -104,6 +104,16 @@ class QuizRepo:
 
         return quiz
 
+    def get_results(self, quiz_id):
+        stmt = """SELECT SUM(CASE WHEN answered_correct THEN 1 ELSE 0 END) AS correct_answer_count
+                  FROM quizzes q
+                  JOIN questions qu ON q.id = qu.quiz_id
+                  WHERE q.id = %s;"""
+
+        with DBSession(self.database) as db:
+            db.cursor.execute(stmt, (quiz_id,))
+            return db.cursor.fetchone()[0]
+
 
 if __name__ == "__main__":
     q1 = Question(text="What is 1 + 1", options=["1", "2", "3", "4"], correct_answer="2", correct_answer_index=1)
