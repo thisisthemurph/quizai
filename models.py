@@ -31,3 +31,12 @@ class Quiz(BaseModel):
 
     def __repr__(self):
         return f"Quiz(prompt={self.prompt})"
+
+    def get_question_index(self, question_id: int):
+        """Returns the index of the given question id or -1 if the id does not exist.
+        Raises a ValueError if the id of any question is None"""
+        question_ids = [q.id for q in self.questions]
+        if None in question_ids:
+            raise ValueError("Some questions do not have an ID set and cannot be compared")
+
+        return question_ids.index(question_id)

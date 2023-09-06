@@ -83,14 +83,8 @@ async def submit_question_answer(
         question_id: int,
         quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
         form: SubmitAnswerForm = Depends(SubmitAnswerForm.form)):
-    def get_question_index(lst, value):
-        for i, question in enumerate(lst):
-            if question.id == value:
-                return i
-        return -1
-
     quiz = quiz_repo.answer(quiz_id, question_id, form.option)
-    current_question_index = get_question_index(quiz.questions, question_id)
+    current_question_index = quiz.get_question_index(question_id)
 
     ctx = dict(
         request=request,

@@ -47,17 +47,17 @@ class QuizRepo:
             WHERE q.id = %s
             ORDER BY q.id, qu.id;"""
 
-        result = None
+        results = []
         with DBSession(self.database, cursor_factory=psycopg2.extras.RealDictCursor) as db:
             db.cursor.execute(stmt, (quiz_id,))
-            result = db.cursor.fetchall()
+            results = db.cursor.fetchall()
 
-        if result is None:
+        if not results:
             return None
 
         quiz_prompt = ""
         rows_by_question_id = dict()
-        for row in result:
+        for row in results:
             if not quiz_prompt:
                 quiz_prompt = row["quiz_prompt"]
 
@@ -68,7 +68,6 @@ class QuizRepo:
 
         questions: list[Question] = []
         for question_id, option_rows in rows_by_question_id.items():
-
             options = [dict(text=x["option_text"], correct=x["option_correct"]) for x in option_rows]
 
             correct_answer_index = 0
@@ -86,21 +85,20 @@ class QuizRepo:
 
             questions.append(q)
 
-        quiz = Quiz(id=quiz_id, prompt=quiz_prompt, questions=questions)
-        return quiz
+        return Quiz(id=quiz_id, prompt=quiz_prompt, questions=questions)
 
     def answer(self, quiz_id: str, question_id: int, option_index: int) -> Quiz:
         option_stmt = "SELECT correct FROM options WHERE question_id = %s ORDER BY id;"
-        update_stmt = """UPDATE questions
-                         SET answered_correct = %s
-                  WHERE quiz_id = %s AND id = %s;"""
+        update_stmt = "UPDATE questions SET answered_correct = %s WHERE quiz_id = %s AND id = %s;"
 
         quiz = self.get(quiz_id)
         with DBSession(self.database) as db:
+            # Determine if the correct answer was selected
             db.cursor.execute(option_stmt, (question_id, ))
             options = [x[0] for x in db.cursor.fetchall()]
             correct_index = options.index(True)
 
+            # Persist if the answer was correct or not
             db.cursor.execute(update_stmt, (option_index == correct_index, quiz_id, question_id))
             db.conn.commit()
 
