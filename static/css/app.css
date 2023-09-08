@@ -600,6 +600,16 @@ select {
   outline: 1px auto -webkit-focus-ring-color;
 }
 
+input[type="text"],
+    input[type="number"],
+    input[type="search"] {
+  border-radius: 0.25rem;
+}
+
+input[type="text"] {
+  width: 100%;
+}
+
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;
@@ -797,10 +807,6 @@ select {
 
 .gap-4 {
   gap: 1rem;
-}
-
-.rounded {
-  border-radius: 0.25rem;
 }
 
 .rounded-full {
