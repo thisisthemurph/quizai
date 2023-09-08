@@ -9,12 +9,17 @@
             <div class="flex gap-4">
                 <input type="text" id="q" name="q" class="w-full rounded" />
                 <input type="number" id="qn" name="qn" value="10" class="w-16" />
-                <button type="submit" class="bg-slate-700 text-white px-6 py-3">Create</button>
+                <button type="submit"
+                        class="bg-slate-700 text-white px-6 py-3"
+                        onclick="removeElement('find-quiz-form');">
+                        Create
+                </button>
             </div>
         </form>
     </section>
 
     <section id="quiz" class="p-8 mt-16">
+        {% include 'partials/find-quiz.html' %}
         <span id="quiz-loading-indicator" class="htmx-indicator">
             {% include 'partials/loading-quiz.html' %}
         </span>

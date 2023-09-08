@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import urllib.parse
+from starlette import status
 
 from persistance.database import Database
 from persistance.quiz_repo import QuizRepo
@@ -50,6 +51,14 @@ class SubmitAnswerForm(BaseModel):
         return cls(option=option)
 
 
+class GoToQuizForm(BaseModel):
+    quiz_id: str
+
+    @classmethod
+    def form(cls, quiz_id: Annotated[str, Form()]):
+        return cls(quiz_id=quiz_id)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
     return templates.TemplateResponse("index.html", dict(request=request))
@@ -76,6 +85,17 @@ async def create_quiz(
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
+
+
+@app.post("/find", response_class=HTMLResponse)
+async def go_to_quiz(quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)], form: GoToQuizForm = Depends(GoToQuizForm.form)):
+    quiz = quiz_repo.get(form.quiz_id)
+
+    if quiz is None:
+        message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
+        return RedirectResponse(f"/not-found?message={message}", status_code=status.HTTP_302_FOUND)
+
+    return RedirectResponse(f"/quiz/{form.quiz_id}", status_code=status.HTTP_302_FOUND)
 
 
 @app.get("/quiz/{quiz_id}", response_class=HTMLResponse)
