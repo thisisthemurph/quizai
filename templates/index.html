@@ -3,15 +3,13 @@
 
 {% block content %}
 <main>
-    <section class="flex flex-col gap-4 w-full py-16 mx-auto bg-yellow-300">
-        <form class="w-4/5 mx-auto" hx-post="/create" hx-target="#quiz" hx-indicator="#quiz-loading-indicator">
-            <label for="q">What would you like to make a quiz about?</label>
+    <section class="w-full py-16 px-8 mx-auto shadow">
+        <form class="mx-auto" hx-post="/create" hx-target="#quiz" hx-indicator="#quiz-loading-indicator">
+            <label for="q" class="inline-block mb-4">What would you like to make a quiz about?</label>
             <div class="flex gap-4">
-                <input type="text" id="q" name="q" />
-                <input type="number" id="qn" name="qn" value="10" min="1" max="15" class="w-16" />
-                <button type="submit"
-                        class="bg-slate-700 text-white px-6 py-3"
-                        onclick="removeElement('find-quiz-form');">
+                <input type="text" id="q" name="q">
+                <input type="number" id="qn" name="qn" value="10" min="1" max="15" class="w-16">
+                <button type="submit" class="btn btn-primary" onclick="removeElement('find-quiz-form');">
                         Create
                 </button>
             </div>
