@@ -3,7 +3,6 @@ import os
 from typing import Annotated
 
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, Form
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
@@ -11,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from persistance.database import Database, DBSession
+from persistance.database import Database
 from persistance.quiz_repo import QuizRepo
 from quiz_builder import QuizBuilder
 
@@ -76,6 +75,23 @@ async def create_quiz(
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
+
+
+@app.get("/quiz/{quiz_id}", response_class=HTMLResponse)
+async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+    quiz = quiz_repo.get(quiz_id)
+    counts = quiz_repo.get_results(quiz_id)
+
+    ctx = dict(
+        request=request,
+        quiz_id=quiz.id,
+        prompt=quiz.prompt,
+        question=quiz.questions[0],
+        counts=counts,
+        question_count=len(quiz),
+    )
+
+    return templates.TemplateResponse("question-page.html", ctx)
 
 
 @app.post("/quiz/{quiz_id}/{question_id}/submit", response_class=HTMLResponse)
