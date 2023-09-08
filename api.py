@@ -71,6 +71,8 @@ async def create_quiz(
         quiz_id=saved_quiz.id,
         prompt=saved_quiz.prompt,
         question=first_question,
+        question_count=len(quiz),
+        counts=quiz_repo.get_results(saved_quiz.id),
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
@@ -86,10 +88,15 @@ async def submit_question_answer(
     quiz = quiz_repo.answer(quiz_id, question_id, form.option)
     current_question_index = quiz.get_question_index(question_id)
 
+    counts = quiz_repo.get_results(quiz_id)
     quiz_completed = current_question_index == len(quiz) - 1
     if quiz_completed:
-        correct_answer_count = quiz_repo.get_results(quiz_id)
-        ctx = dict(request=request, correct_answer_count=correct_answer_count)
+        ctx = dict(
+            request=request,
+            counts=counts,
+            question_count=len(quiz),
+        )
+
         return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
     else:
         ctx = dict(
@@ -97,6 +104,8 @@ async def submit_question_answer(
             quiz_id=quiz.id,
             prompt=quiz.prompt,
             question=quiz.questions[current_question_index + 1],
+            counts=counts,
+            question_count=len(quiz),
         )
 
         return templates.TemplateResponse("partials/question.html", ctx)

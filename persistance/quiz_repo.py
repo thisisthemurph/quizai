@@ -4,6 +4,13 @@ from models import Quiz, Question
 from persistance.database import DBSession, Database
 
 
+class QuizResults:
+    def __init__(self, count: int, answered: int, correct: int):
+        self.count = count
+        self.answered = answered
+        self.correct = correct
+
+
 class QuizRepo:
     def __init__(self, database: Database):
         self.database = database
@@ -104,15 +111,20 @@ class QuizRepo:
 
         return quiz
 
-    def get_results(self, quiz_id):
-        stmt = """SELECT SUM(CASE WHEN answered_correct THEN 1 ELSE 0 END) AS correct_answer_count
+    def get_results(self, quiz_id) -> QuizResults:
+        stmt = """SELECT
+                    COUNT(q.id) AS count,
+                    SUM(CASE WHEN qu.answered_correct IS NOT NULL THEN 1 ELSE 0 END) AS answered,
+                    SUM(CASE WHEN qu.answered_correct THEN 1 ELSE 0 END) AS correct
                   FROM quizzes q
                   JOIN questions qu ON q.id = qu.quiz_id
                   WHERE q.id = %s;"""
 
         with DBSession(self.database) as db:
             db.cursor.execute(stmt, (quiz_id,))
-            return db.cursor.fetchone()[0]
+            counts = db.cursor.fetchone()
+            # return dict(question_count=counts[0], correct_count=counts[1])
+            return QuizResults(count=counts[0], answered=counts[1], correct=counts[2])
 
 
 if __name__ == "__main__":

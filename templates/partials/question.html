@@ -1,5 +1,6 @@
 <form hx-post="/quiz/{{ quiz_id }}/{{ question.id }}/submit" hx-swap="outerHTML">
     <header class="mb-4">
+        {% include 'partials/segmented-quiz-bar.html' %}
         <h4 class="text-xl">
             {{ prompt }}
         </h4>
