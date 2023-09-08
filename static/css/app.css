@@ -725,6 +725,10 @@ select {
   margin-top: 4rem;
 }
 
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
 .block {
   display: block;
 }
@@ -735,6 +739,10 @@ select {
 
 .h-64 {
   height: 16rem;
+}
+
+.h-6 {
+  height: 1.5rem;
 }
 
 .w-16 {
@@ -757,6 +765,10 @@ select {
   width: 100%;
 }
 
+.w-6 {
+  width: 1.5rem;
+}
+
 .flex-none {
   flex: none;
 }
@@ -769,6 +781,27 @@ select {
 
 .animate-spin-slow {
   animation: spin 2s linear infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .flex-col {
@@ -896,6 +929,53 @@ select {
   line-height: 1.75rem;
 }
 
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.text-5xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.text-\[34rem\] {
+  font-size: 34rem;
+}
+
+.text-\[26rem\] {
+  font-size: 26rem;
+}
+
+.text-\[16rem\] {
+  font-size: 16rem;
+}
+
+.text-\[12rem\] {
+  font-size: 12rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-\[3\.2vw\] {
+  font-size: 3.2vw;
+}
+
+.text-\[100vw\] {
+  font-size: 100vw;
+}
+
+.text-\[50vw\] {
+  font-size: 50vw;
+}
+
+.text-\[25vw\] {
+  font-size: 25vw;
+}
+
 .text-slate-400 {
   --tw-text-opacity: 1;
   color: rgb(148 163 184 / var(--tw-text-opacity));
@@ -919,4 +999,20 @@ select {
 .peer:checked ~ .peer-checked\:bg-slate-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(100 116 139 / var(--tw-bg-opacity));
+}
+
+@media (min-width: 1024px) {
+  .lg\:text-5xl {
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .lg\:text-\[16rem\] {
+    font-size: 16rem;
+  }
+
+  .lg\:text-red-200 {
+    --tw-text-opacity: 1;
+    color: rgb(254 202 202 / var(--tw-text-opacity));
+  }
 }

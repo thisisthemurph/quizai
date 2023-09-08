@@ -94,6 +94,7 @@ async def submit_question_answer(
         ctx = dict(
             request=request,
             counts=counts,
+            pct=int(counts.correct / len(quiz) * 100),
             question_count=len(quiz),
         )
 

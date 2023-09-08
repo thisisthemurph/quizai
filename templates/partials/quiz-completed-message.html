@@ -1,4 +1,5 @@
 <section>
-    <p>You have completed the quiz!</p>
-    <p>You scored {{ correct_answer_count }} / X</p>
+    <p class="text-center text-[25vw] lg:text-[16rem]">{{ pct|int }}%</p>
+    <p class="text-center text-2xl mb-2">You have completed the quiz!</p>
+    <p class="text-center text-2xl">You scored {{ counts.correct }}/{{ question_count }}</p>
 </section>
