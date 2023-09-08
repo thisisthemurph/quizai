@@ -5,10 +5,11 @@ from typing import Annotated
 import uvicorn
 from fastapi import FastAPI, Depends, Form
 from fastapi.requests import Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import urllib.parse
 
 from persistance.database import Database
 from persistance.quiz_repo import QuizRepo
@@ -80,6 +81,11 @@ async def create_quiz(
 @app.get("/quiz/{quiz_id}", response_class=HTMLResponse)
 async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
     quiz = quiz_repo.get(quiz_id)
+
+    if quiz is None:
+        message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
+        return RedirectResponse(f"/not-found?message={message}")
+
     counts = quiz_repo.get_results(quiz_id)
 
     ctx = dict(
@@ -126,6 +132,12 @@ async def submit_question_answer(
         )
 
         return templates.TemplateResponse("partials/question.html", ctx)
+
+
+@app.get("/not-found", response_class=HTMLResponse)
+async def not_found(request: Request, message: str = None):
+    ctx = dict(request=request, message=message or "The resource could not be found")
+    return templates.TemplateResponse("not-found-page.html", ctx)
 
 
 async def main():

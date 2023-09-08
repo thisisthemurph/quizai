@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<main>
+    <section class="flex flex-col items-center">
+        <span class="text-red-400 mb-8">
+            {% include 'icons/no.svg' %}
+        </span>
+        <h2 class="text-4xl mb-4">404 Not Found!</h2>
+        <p class="text-xl">{{ message }}</p>
+    </section>
+</main>
+{% endblock %}
