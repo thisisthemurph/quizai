@@ -1,0 +1,11 @@
+{% macro icon(name, w=none, h=none, class='') %}
+    {% set icon_path = '/icons/' + name + '.svg' %}
+    
+    {% if w == none or h == none %}
+        {% set styles = '' %}
+    {% else %}
+        {% set styles = 'width:' + w + ';height:' + h + ';' %}
+    {% endif %}
+
+    {% include icon_path %}
+{% endmacro %}

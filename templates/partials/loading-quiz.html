@@ -1,6 +1,8 @@
+{% from 'macros/icon.html' import icon %}
+
 <section>
     <span>
-        {% include 'icons/arrow-path.svg' %}
+        {{ icon('arrow-path', class='w-64 h-64 mx-auto animate-spin-slow text-slate-400') }}
     </span>
     <p class="text-center text-xl mt-16">Please wait whilst your quiz is being generated...</p>
 </section>

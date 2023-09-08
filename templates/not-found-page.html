@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 
+{% from 'macros/icon.html' import icon %}
+
 {% block content %}
 <main>
     <section class="flex flex-col items-center">
-        <span class="text-red-400 mb-8">
-            {% include 'icons/no.svg' %}
+        <span class="mb-8">
+            {{ icon('no', class='w-64 h-64 text-red-400') }}
         </span>
         <h2 class="text-4xl mb-4">404 Not Found!</h2>
         <p class="text-xl">{{ message }}</p>
