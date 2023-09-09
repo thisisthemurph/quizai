@@ -1,9 +1,13 @@
+{% from 'macros/icon.html' import icon %}
+
 <form hx-post="/quiz/{{ quiz_id }}/{{ question.id }}/submit" hx-swap="outerHTML">
-    <header class="mb-4">
-        {% include 'partials/segmented-quiz-bar.html' %}
+    <header class="flex flex-col gap-4 mb-8">
         <h4 class="text-xl">
             {{ prompt }}
         </h4>
+        <span class="block">
+            {% include 'partials/segmented-quiz-bar.html' %}
+        </span>
     </header>
     <fieldset class="flex flex-col gap-4 mb-4">
         <legend class="text-slate-700 mb-4">{{ question.text }}</legend>
@@ -17,8 +21,9 @@
     </fieldset>
 
     <div class="flex justify-end">
-        <button type="submit" class="bg-slate-700 text-white px-6 py-3">
+        <button type="submit" class="btn btn-primary">
             Submit Answer
+            {{ icon('arrow-right', class='w-4 h-4') }}
         </button>
     </div>
 </form>
