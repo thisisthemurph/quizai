@@ -3,18 +3,16 @@
 
 {% block content %}
 <main>
-    <section class="w-full py-16 px-8 mx-auto shadow">
-        <form class="mx-auto" hx-post="/create" hx-target="#quiz" hx-indicator="#quiz-loading-indicator">
-            <label for="q" class="inline-block mb-4">What would you like to make a quiz about?</label>
-            <div class="flex gap-4">
-                <input type="text" id="q" name="q">
-                <input type="number" id="qn" name="qn" value="10" min="1" max="15" class="w-16">
-                <button type="submit" class="btn btn-primary" onclick="removeElement('find-quiz-form');">
-                        Create
-                </button>
-            </div>
-        </form>
-    </section>
+    <form class="mx-auto shadow p-8 bg-slate-50" hx-post="/create" hx-target="#quiz" hx-indicator="#quiz-loading-indicator">
+        <label for="q" class="inline-block mb-4">What would you like to make a quiz about?</label>
+        <div class="flex gap-2">
+            <input type="text" id="q" name="q">
+            <input type="number" id="qn" name="qn" value="10" min="1" max="15" class="w-16" title="Number of questions">
+            <button type="submit" class="btn btn-primary" onclick="removeElement('find-quiz-form');">
+                    Create
+            </button>
+        </div>
+    </form>
 
     <section id="quiz" class="p-8 mt-16">
         {% include 'partials/find-quiz.html' %}
