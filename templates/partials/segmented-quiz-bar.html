@@ -1,11 +1,25 @@
 {% set correct_pct = counts.correct * 100 / question_count %}
 {% set incorrect_pct = (counts.answered - counts.correct) * 100 / question_count %}
 
+{% set has_incorrect_answers = counts.answered - counts.correct > 0 %}
+
+{% if has_incorrect_answers %}
+    {% set correct_rounding = 'rounded-l-full' %}
+{% else %}
+    {% set correct_rounding = 'rounded-full' %}
+{% endif %}
+
 <section class="flex bg-slate-50 border border-blue-200 rounded-full">
-    <div style="width: {{ correct_pct }}%" class="bg-blue-200 rounded-l-full text-right p-1 pr-4">
-        {{ counts.correct }}
-    </div>
-    <div style="width: {{ incorrect_pct }}%" class="bg-slate-200 rounded-r-full text-right p-1 pr-4">
-        {{ counts.answered - counts.correct }}
-    </div>
+    {% if counts.answered == 0 %}
+        <div>&nbsp;</div>
+    {% else %}
+        <div style="width: {{ correct_pct }}%" class="bg-blue-200 {{ correct_rounding }} text-right p-1 pr-4">
+            {{ counts.correct }}
+        </div>
+        {% if has_incorrect_answers %}
+            <div style="width: {{ incorrect_pct }}%" class="bg-slate-200 rounded-r-full text-right p-1 pr-4">
+                {{ counts.answered - counts.correct }}
+            </div>
+        {% endif %}
+    {% endif %}
 </section>
