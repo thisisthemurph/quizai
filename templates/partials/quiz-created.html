@@ -1,0 +1,11 @@
+{% from 'macros/icon.html' import icon %}
+
+<section>
+    <p class="text-xl text-slate-600 mb-4">
+        Your quiz <span class="text-slate-700 italic">&OpenCurlyDoubleQuote;{{ prompt }}&CloseCurlyDoubleQuote;</span> has been generated.
+    </p>
+    <a href="quiz/{{ quiz_id }}" class="btn btn-primary">
+        Click here to start
+        {{ icon('arrow-right', class='w-4 h-4') }}
+    </a>
+</section>

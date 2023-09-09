@@ -70,21 +70,11 @@ async def create_quiz(
         quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
         form: CreateQuizForm = Depends(CreateQuizForm.form)):
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
-
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
     saved_quiz = quiz_repo.create(quiz)
-    first_question = saved_quiz.questions[0]
 
-    ctx = dict(
-        request=request,
-        quiz_id=saved_quiz.id,
-        prompt=saved_quiz.prompt,
-        question=first_question,
-        question_count=len(quiz),
-        counts=quiz_repo.get_results(saved_quiz.id),
-    )
-
-    return templates.TemplateResponse("partials/question.html", ctx)
+    ctx = dict(request=request, quiz_id=saved_quiz.id, prompt=saved_quiz.prompt)
+    return templates.TemplateResponse("partials/quiz-created.html", ctx)
 
 
 @app.post("/find", response_class=HTMLResponse)

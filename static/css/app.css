@@ -715,6 +715,10 @@ input[type="text"],
   position: static;
 }
 
+.m-4 {
+  margin: 1rem;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -760,6 +764,10 @@ input[type="text"],
   height: 3rem;
 }
 
+.h-4 {
+  height: 1rem;
+}
+
 .h-64 {
   height: 16rem;
 }
@@ -770,6 +778,10 @@ input[type="text"],
 
 .w-16 {
   width: 4rem;
+}
+
+.w-4 {
+  width: 1rem;
 }
 
 .w-52 {
@@ -936,6 +948,11 @@ input[type="text"],
   line-height: 1.75rem;
 }
 
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
 .italic {
   font-style: italic;
 }
@@ -975,6 +992,15 @@ input[type="text"],
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
+.text-slate-600 {
+  --tw-text-opacity: 1;
+  color: rgb(71 85 105 / var(--tw-text-opacity));
+}
+
+.underline {
+  text-decoration-line: underline;
+}
+
 .shadow {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
@@ -985,6 +1011,7 @@ input[type="text"],
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
   border-radius: 0.5rem;
   padding-left: 1.25rem;
   padding-right: 1.25rem;

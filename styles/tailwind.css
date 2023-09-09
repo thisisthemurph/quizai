@@ -16,7 +16,7 @@
 }
 
 .btn {
-    @apply focus:ring-4 focus:ring-[#2557D6]/50 focus:outline-none text-sm px-5 py-2.5 text-center inline-flex justify-center items-center font-medium rounded-lg;
+    @apply focus:ring-4 focus:ring-[#2557D6]/50 focus:outline-none text-sm px-5 py-2.5 text-center inline-flex justify-center items-center gap-4 font-medium rounded-lg;
 }
 
 .btn.btn-primary {
