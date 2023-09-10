@@ -26,3 +26,19 @@
 .btn.btn-outline {
     @apply text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-gray-100;
 }
+
+/*
+ * Hides the default icon in a spinner button when a HTMX request has been made.
+ * This is replaced with the spinner icon using the htmx-indicator utility class.
+ */
+.btn.btn-spinner .htmx-request + svg {
+    @apply hidden;
+}
+
+.htmx-indicator {
+    @apply hidden;
+}
+
+.htmx-request {
+    @apply block;
+}

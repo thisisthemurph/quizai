@@ -715,10 +715,6 @@ input[type="text"],
   position: static;
 }
 
-.m-4 {
-  margin: 1rem;
-}
-
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -790,6 +786,16 @@ input[type="text"],
 
 .w-64 {
   width: 16rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -886,9 +892,8 @@ input[type="text"],
   background-color: rgb(248 250 252 / var(--tw-bg-opacity));
 }
 
-.bg-slate-700 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(51 65 85 / var(--tw-bg-opacity));
+.fill-blue-600 {
+  fill: #2563eb;
 }
 
 .p-1 {
@@ -905,16 +910,6 @@ input[type="text"],
 
 .p-8 {
   padding: 2rem;
-}
-
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-}
-
-.py-3 {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
 }
 
 .pr-4 {
@@ -948,11 +943,6 @@ input[type="text"],
   line-height: 1.75rem;
 }
 
-.text-lg {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-}
-
 .italic {
   font-style: italic;
 }
@@ -967,6 +957,11 @@ input[type="text"],
   color: rgb(30 64 175 / var(--tw-text-opacity));
 }
 
+.text-gray-200 {
+  --tw-text-opacity: 1;
+  color: rgb(229 231 235 / var(--tw-text-opacity));
+}
+
 .text-red-400 {
   --tw-text-opacity: 1;
   color: rgb(248 113 113 / var(--tw-text-opacity));
@@ -977,6 +972,11 @@ input[type="text"],
   color: rgb(148 163 184 / var(--tw-text-opacity));
 }
 
+.text-slate-600 {
+  --tw-text-opacity: 1;
+  color: rgb(71 85 105 / var(--tw-text-opacity));
+}
+
 .text-slate-700 {
   --tw-text-opacity: 1;
   color: rgb(51 65 85 / var(--tw-text-opacity));
@@ -985,20 +985,6 @@ input[type="text"],
 .text-slate-800 {
   --tw-text-opacity: 1;
   color: rgb(30 41 59 / var(--tw-text-opacity));
-}
-
-.text-white {
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.text-slate-600 {
-  --tw-text-opacity: 1;
-  color: rgb(71 85 105 / var(--tw-text-opacity));
-}
-
-.underline {
-  text-decoration-line: underline;
 }
 
 .shadow {
@@ -1061,6 +1047,23 @@ input[type="text"],
 .btn.btn-outline:focus {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(243 244 246 / var(--tw-ring-opacity));
+}
+
+/*
+ * Hides the default icon in a spinner button when a HTMX request has been made.
+ * This is replaced with the spinner icon using the htmx-indicator utility class.
+ */
+
+.btn.btn-spinner .htmx-request + svg {
+  display: none;
+}
+
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request {
+  display: block;
 }
 
 .hover\:bg-slate-300:hover {

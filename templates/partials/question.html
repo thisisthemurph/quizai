@@ -1,6 +1,7 @@
 {% from 'macros/icon.html' import icon %}
+{% from 'macros/btn.html' import htmx_spinner_button %}
 
-<form hx-post="/quiz/{{ quiz_id }}/{{ question.id }}/submit" hx-swap="outerHTML">
+<form hx-post="/quiz/{{ quiz_id }}/{{ question.id }}/submit" hx-swap="outerHTML" hx-indicator="#spinner">
     <header class="flex flex-col gap-4 mb-8">
         <h4 class="text-xl">
             {{ prompt }}
@@ -21,9 +22,7 @@
     </fieldset>
 
     <div class="flex justify-end">
-        <button type="submit" class="btn btn-primary">
-            Submit Answer
-            {{ icon('arrow-right', class='w-4 h-4') }}
-        </button>
+        {{ htmx_spinner_button('Submit Answer', type='submit', icon_name='arrow-right') }}
     </div>
+
 </form>
