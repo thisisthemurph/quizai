@@ -96,18 +96,18 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
         return RedirectResponse(f"/not-found?message={message}")
 
+    current_question = quiz_repo.get_current_question(quiz_id)
     counts = quiz_repo.get_results(quiz_id)
 
     ctx = dict(
         request=request,
-        quiz_id=quiz.id,
-        prompt=quiz.prompt,
-        question=quiz.questions[0],
+        quiz=quiz,
         counts=counts,
-        question_count=len(quiz),
+        pct=int(counts.correct / len(quiz) * 100),
+        current_question=current_question,
     )
 
-    return templates.TemplateResponse("question-page.html", ctx)
+    return templates.TemplateResponse("quiz-page.html", ctx)
 
 
 @app.post("/quiz/{quiz_id}/{question_id}/submit", response_class=HTMLResponse)
@@ -119,9 +119,9 @@ async def submit_question_answer(
         form: SubmitAnswerForm = Depends(SubmitAnswerForm.form)):
     quiz = quiz_repo.answer(quiz_id, question_id, form.option)
     current_question_index = quiz.get_question_index(question_id)
-
     counts = quiz_repo.get_results(quiz_id)
     quiz_completed = current_question_index == len(quiz) - 1
+
     if quiz_completed:
         ctx = dict(
             request=request,
@@ -131,17 +131,18 @@ async def submit_question_answer(
         )
 
         return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
-    else:
-        ctx = dict(
-            request=request,
-            quiz_id=quiz.id,
-            prompt=quiz.prompt,
-            question=quiz.questions[current_question_index + 1],
-            counts=counts,
-            question_count=len(quiz),
-        )
 
-        return templates.TemplateResponse("partials/question.html", ctx)
+    current_question = quiz.questions[current_question_index + 1]
+
+    ctx = dict(
+        request=request,
+        quiz=quiz,
+        counts=counts,
+        pct=int(counts.correct / len(quiz) * 100),
+        current_question=current_question,
+    )
+
+    return templates.TemplateResponse("partials/quiz-carousel.html", ctx)
 
 
 @app.get("/not-found", response_class=HTMLResponse)

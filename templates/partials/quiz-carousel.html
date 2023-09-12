@@ -1,0 +1,19 @@
+{% from 'macros/carousel.html' import question_window, incorrect_window %}
+
+<div id="quiz-carousel" class="relative w-full">
+{% for question in quiz.questions %}
+    {% set question_index = loop.index %}
+    {% if current_question.id == question.id %}
+        {% set hidden = '' %}
+    {% else %}
+        {% set hidden = 'hidden' %}
+    {% endif %}
+
+    <div class="{{ hidden }}">
+        {{ question_window(quiz.id, question, question_index) }}
+        {% if question.answered_correct == false %}
+            {{ incorrect_window(question.correct_answer) }}
+        {% endif %}
+    </div>
+{% endfor %}
+</div>

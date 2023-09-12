@@ -3,6 +3,7 @@
 
 {% block content %}
 <main class="p-8">
-    {% include 'partials/question.html' %}
+    <h3 class="text-2xl mb-4">{{ quiz.prompt }}</h3>
+    {% include 'partials/quiz-carousel.html' %}
 </main>
 {% endblock %}

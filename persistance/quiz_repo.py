@@ -88,7 +88,9 @@ class QuizRepo:
                 text=option_rows[0]["question_text"],
                 options=[option["text"] for option in options],
                 correct_answer=options[correct_answer_index]["text"],
-                correct_answer_index=correct_answer_index)
+                correct_answer_index=correct_answer_index,
+                answered_correct=rows_by_question_id[question_id][0]["question_answered_correct"],
+            )
 
             questions.append(q)
 
@@ -125,6 +127,25 @@ class QuizRepo:
             counts = db.cursor.fetchone()
             # return dict(question_count=counts[0], correct_count=counts[1])
             return QuizResults(count=counts[0], answered=counts[1], correct=counts[2])
+
+    def get_current_question(self, quiz_id: str) -> Question | None:
+        stmt = """SELECT
+        	q.id AS quiz_id,
+        	qu.id AS question_id,
+        	qu.text
+        FROM quizzes q
+        JOIN questions qu ON q.id = qu.quiz_id
+        WHERE q.id = %s
+        	AND qu.answered_correct IS NULL
+        ORDER BY qu.id
+        LIMIT 1;"""
+
+        with DBSession(self.database) as db:
+            db.cursor.execute(stmt, (quiz_id,))
+            result = db.cursor.fetchone()
+            if not result:
+                return None
+            return Question(id=result[1], text=result[2], options=[], correct_answer='', correct_answer_index=-1)
 
 
 if __name__ == "__main__":

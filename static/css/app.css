@@ -715,6 +715,10 @@ input[type="text"],
   position: static;
 }
 
+.relative {
+  position: relative;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -790,6 +794,10 @@ input[type="text"],
 
 .w-64 {
   width: 16rem;
+}
+
+.w-full {
+  width: 100%;
 }
 
 @keyframes spin {
@@ -945,6 +953,10 @@ input[type="text"],
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
+}
+
+.font-medium {
+  font-weight: 500;
 }
 
 .italic {

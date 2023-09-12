@@ -7,6 +7,7 @@ class Question(BaseModel):
     options: list[str]
     correct_answer: str
     correct_answer_index: int
+    answered_correct: bool | None = None
 
     def __len__(self):
         return len(self.options)
@@ -29,8 +30,10 @@ class Quiz(BaseModel):
     def __str__(self):
         return self.prompt
 
-    def __repr__(self):
-        return f"Quiz(prompt={self.prompt})"
+    def __getitem__(self, idx: int):
+        if not isinstance(idx, int):
+            raise TypeError(f"Invalid Argument Type: expected int got {type(idx)} instead")
+        return self.questions[idx]
 
     def get_question_index(self, question_id: int):
         """Returns the index of the given question id or -1 if the id does not exist.
