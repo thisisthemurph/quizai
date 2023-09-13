@@ -1,0 +1,22 @@
+{% from 'macros/icon.html' import icon %}
+
+<section id="incorrect-warning" class="flex flex-col items-center">
+    <header class="text-center mb-8">
+        {{ icon('x-circle', class='w-32 h-32 text-red-400') }}
+    </header>
+    
+    <section class="flex flex-col items-center">
+        <p class="text-xl text-slate-600">Sorry, that was not the correct answer!</p>
+        <p class="text-xl text-slate-600 mb-4">The correct answer was:</p>
+        <p class="text-2xl mb-6">{{ correct_answer }}</p>
+        
+        <button type="button"
+                class="btn btn-primary"
+                hx-get="/quiz/{{ quiz_id }}/next"
+                hx-target="#incorrect-warning"
+                hx-swap="outerHTML">
+            Go to next question
+        </button>
+    </section>
+    
+</section>

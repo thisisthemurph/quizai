@@ -96,11 +96,10 @@ class QuizRepo:
 
         return Quiz(id=quiz_id, prompt=quiz_prompt, questions=questions)
 
-    def answer(self, quiz_id: str, question_id: int, option_index: int) -> Quiz:
+    def answer(self, quiz_id: str, question_id: int, option_index: int) -> bool:
         option_stmt = "SELECT correct FROM options WHERE question_id = %s ORDER BY id;"
         update_stmt = "UPDATE questions SET answered_correct = %s WHERE quiz_id = %s AND id = %s;"
 
-        quiz = self.get(quiz_id)
         with DBSession(self.database) as db:
             # Determine if the correct answer was selected
             db.cursor.execute(option_stmt, (question_id, ))
@@ -108,10 +107,11 @@ class QuizRepo:
             correct_index = options.index(True)
 
             # Persist if the answer was correct or not
-            db.cursor.execute(update_stmt, (option_index == correct_index, quiz_id, question_id))
+            is_correct = option_index == correct_index
+            db.cursor.execute(update_stmt, (is_correct, quiz_id, question_id))
             db.conn.commit()
 
-        return quiz
+            return is_correct
 
     def get_results(self, quiz_id) -> QuizResults:
         stmt = """SELECT
