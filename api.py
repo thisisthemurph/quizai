@@ -1,6 +1,8 @@
+import asyncio
 import os
 from typing import Annotated
 
+import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -167,3 +169,18 @@ async def submit_question_answer(
 async def not_found(request: Request, message: str = None):
     ctx = dict(request=request, message=message or "The resource could not be found")
     return templates.TemplateResponse("not-found-page.html", ctx)
+
+
+async def main():
+    # This is for development purposes only
+    # Initialize the database for the initial run
+    __db = Database.default()
+    __db.create_tables_if_not_exists()
+
+    config = uvicorn.Config("api:app", port=8000, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
