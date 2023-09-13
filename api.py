@@ -96,7 +96,9 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
         return RedirectResponse(f"/not-found?message={message}")
 
+    # TODO: Maybe this only needs to get the ID of the current question?
     current_question = quiz_repo.get_current_question(quiz_id)
+    current_question_index = quiz.get_question_index(current_question.id)
     counts = quiz_repo.get_results(quiz_id)
 
     ctx = dict(
@@ -104,10 +106,46 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
         quiz=quiz,
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
-        current_question=current_question,
+        question=quiz.questions[current_question_index],
+        question_index=current_question_index + 1,
     )
 
     return templates.TemplateResponse("quiz-page.html", ctx)
+
+
+@app.get("/quiz/{quiz_id}/next", response_class=HTMLResponse)
+async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+    quiz = quiz_repo.get(quiz_id)
+    if quiz is None:
+        message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
+        return RedirectResponse(f"/not-found?message={message}")
+
+    # TODO: Maybe this only needs to get the ID of the current question?
+    current_question = quiz_repo.get_current_question(quiz_id)
+    if current_question is None:
+        counts = quiz_repo.get_results(quiz_id)
+        ctx = dict(
+            request=request,
+            counts=counts,
+            pct=int(counts.correct / len(quiz) * 100),
+            question_count=len(quiz),
+        )
+
+        return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
+
+    current_question_index = quiz.get_question_index(current_question.id)
+    counts = quiz_repo.get_results(quiz_id)
+
+    ctx = dict(
+        request=request,
+        quiz=quiz,
+        counts=counts,
+        pct=int(counts.correct / len(quiz) * 100),
+        question=quiz.questions[current_question_index],
+        question_index=current_question_index + 1,
+    )
+
+    return templates.TemplateResponse("partials/question.html", ctx)
 
 
 @app.post("/quiz/{quiz_id}/{question_id}/submit", response_class=HTMLResponse)
@@ -117,10 +155,19 @@ async def submit_question_answer(
         question_id: int,
         quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
         form: SubmitAnswerForm = Depends(SubmitAnswerForm.form)):
-    quiz = quiz_repo.answer(quiz_id, question_id, form.option)
+    """Updates the answer for the question and returns the next question in the list."""
+
+    quiz = quiz_repo.get(quiz_id)
+    answered_correctly = quiz_repo.answer(quiz_id, question_id, form.option)
     current_question_index = quiz.get_question_index(question_id)
+    next_question_index = current_question_index + 1
     counts = quiz_repo.get_results(quiz_id)
     quiz_completed = current_question_index == len(quiz) - 1
+
+    if not answered_correctly:
+        current_question = quiz.questions[current_question_index]
+        ctx = dict(request=request, quiz_id=quiz_id, correct_answer=current_question.correct_answer)
+        return templates.TemplateResponse("partials/incorrect.html", ctx)
 
     if quiz_completed:
         ctx = dict(
@@ -132,17 +179,16 @@ async def submit_question_answer(
 
         return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
 
-    current_question = quiz.questions[current_question_index + 1]
-
     ctx = dict(
         request=request,
         quiz=quiz,
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
-        current_question=current_question,
+        question=quiz.questions[next_question_index],
+        question_index=next_question_index + 1,
     )
 
-    return templates.TemplateResponse("partials/quiz-carousel.html", ctx)
+    return templates.TemplateResponse("partials/question.html", ctx)
 
 
 @app.get("/not-found", response_class=HTMLResponse)
