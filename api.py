@@ -1,8 +1,6 @@
-import asyncio
 import os
 from typing import Annotated
 
-import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -28,6 +26,7 @@ def quiz_repo_param() -> QuizRepo:
 
 @app.get("/", response_class=HTMLResponse)
 async def index_page(request: Request):
+    """Renders the home page."""
     return templates.TemplateResponse("index.html", dict(request=request))
 
 
@@ -36,6 +35,7 @@ async def create_quiz(
         request: Request,
         quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
         form: CreateQuizForm = Depends(CreateQuizForm.form)):
+    """Creates a new quiz and presents the button to start the quiz."""
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
     saved_quiz = quiz_repo.create(quiz)
@@ -45,7 +45,10 @@ async def create_quiz(
 
 
 @app.post("/find", response_class=HTMLResponse)
-async def go_to_quiz(quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)], form: GoToQuizForm = Depends(GoToQuizForm.form)):
+async def go_to_quiz(
+        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+        form: GoToQuizForm = Depends(GoToQuizForm.form)):
+    """Finsd a given quiz and redirects to it if found, otherwise redirects to error page."""
     quiz = quiz_repo.get(form.quiz_id)
 
     if quiz is None:
@@ -57,6 +60,7 @@ async def go_to_quiz(quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)], f
 
 @app.get("/quiz/{quiz_id}", response_class=HTMLResponse)
 async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+    """Returns the requested quiz."""
     quiz = quiz_repo.get(quiz_id)
 
     if quiz is None:
@@ -82,6 +86,7 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
 
 @app.get("/quiz/{quiz_id}/next", response_class=HTMLResponse)
 async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+    """Returns the next question for the given quiz, or the quiz complete notification if complete."""
     quiz = quiz_repo.get(quiz_id)
     if quiz is None:
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
@@ -162,17 +167,3 @@ async def submit_question_answer(
 async def not_found(request: Request, message: str = None):
     ctx = dict(request=request, message=message or "The resource could not be found")
     return templates.TemplateResponse("not-found-page.html", ctx)
-
-
-async def main():
-    # Initialize the database for the initial run
-    __db = Database.default()
-    __db.create_tables_if_not_exists()
-
-    config = uvicorn.Config("api:app", port=8000, log_level="info")
-    server = uvicorn.Server(config)
-    await server.serve()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
