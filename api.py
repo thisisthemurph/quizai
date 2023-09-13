@@ -107,7 +107,7 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
         question=quiz.questions[current_question_index],
-        question_index=current_question_index + 1,
+        question_number=current_question_index + 1,
     )
 
     return templates.TemplateResponse("quiz-page.html", ctx)
@@ -142,7 +142,7 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
         question=quiz.questions[current_question_index],
-        question_index=current_question_index + 1,
+        question_number=current_question_index + 1,
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
@@ -185,7 +185,7 @@ async def submit_question_answer(
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
         question=quiz.questions[next_question_index],
-        question_index=next_question_index + 1,
+        question_number=next_question_index + 1,
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
