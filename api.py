@@ -3,15 +3,15 @@ import os
 from typing import Annotated
 
 import uvicorn
-from fastapi import FastAPI, Depends, Form
+from fastapi import FastAPI, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 import urllib.parse
 from starlette import status
 
+from models.form_models import CreateQuizForm, SubmitAnswerForm, GoToQuizForm
 from persistance.database import Database
 from persistance.quiz_repo import QuizRepo
 from quiz_builder import QuizBuilder
@@ -24,39 +24,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def quiz_repo_param() -> QuizRepo:
     db = Database.default()
     return QuizRepo(db)
-
-
-class CreateQuizForm(BaseModel):
-    q: str
-    qn: int
-
-    @property
-    def prompt(self):
-        return self.q
-
-    @property
-    def count(self):
-        return self.qn
-
-    @classmethod
-    def form(cls, q: Annotated[str, Form()], qn: Annotated[int, Form()]):
-        return cls(q=q, qn=qn)
-
-
-class SubmitAnswerForm(BaseModel):
-    option: int
-
-    @classmethod
-    def form(cls, option: Annotated[int, Form()]):
-        return cls(option=option)
-
-
-class GoToQuizForm(BaseModel):
-    quiz_id: str
-
-    @classmethod
-    def form(cls, quiz_id: Annotated[str, Form()]):
-        return cls(quiz_id=quiz_id)
 
 
 @app.get("/", response_class=HTMLResponse)
