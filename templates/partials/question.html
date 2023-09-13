@@ -1,3 +1,3 @@
-{% from 'macros/carousel.html' import question_window %}
+{% import 'macros/quiz.html' as quiz_macro %}
 
-{{ question_window(quiz.id, question, question_index) }}
+{{ quiz_macro.question(quiz.id, question, question_index) }}

@@ -1,7 +1,7 @@
 {% from 'macros/icon.html' import icon %}
 {% from 'macros/btn.html' import htmx_spinner_button %}
 
-{% macro question_window(quiz_id, question, question_number) %}
+{% macro question(quiz_id, question, question_number) %}
 {% set spinner_id = 'spinner_' + question.id|string %}
 <form hx-post="/quiz/{{ quiz_id }}/{{ question.id }}/submit" hx-swap="outerHTML" hx-indicator="#{{ spinner_id }}">
     <fieldset class="flex flex-col gap-4 mb-4">
@@ -28,7 +28,7 @@
 </form>
 {% endmacro %}
 
-{% macro incorrect_window(correct_answer) %}
+{% macro incorrect_answer(correct_answer) %}
 <section class="flex flex-col items-center gap-4">
     <span>
         {{ icon('x-circle', class='w-64 h-64 text-red-400') }}
