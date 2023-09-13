@@ -27,15 +27,3 @@
     </div>
 </form>
 {% endmacro %}
-
-{% macro incorrect_answer(correct_answer) %}
-<section class="flex flex-col items-center gap-4">
-    <span>
-        {{ icon('x-circle', class='w-64 h-64 text-red-400') }}
-    </span>
-    <p>
-        Sorry, that wasn't correct.
-        The correct answer was <span class="font-medium">{{ correct_answer }}</span>.
-    </p>
-</section>
-{% endmacro %}
