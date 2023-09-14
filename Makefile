@@ -10,3 +10,6 @@ tw:
 tw-ref:
 	rm --force ./static/css/app.css
 	make tw
+
+black:
+	black . --config project.py.toml

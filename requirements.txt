@@ -1,3 +1,4 @@
+black
 fastapi
 jinja2
 openai

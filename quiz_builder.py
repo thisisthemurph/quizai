@@ -33,9 +33,7 @@ class QuizBuilder:
     def make_quiz(self, topic: str, num_questions: int = 10) -> Quiz:
         self.messages.append({"role": "user", "content": f"{topic} | {num_questions}"})
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=self.messages
-        )
+        response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=self.messages)
 
         quiz_json = response.choices[0].message.content
         quiz_dict = json.loads(quiz_json)

@@ -34,9 +34,10 @@ async def index_page(request: Request):
 
 @app.post("/create", response_class=HTMLResponse)
 async def create_quiz(
-        request: Request,
-        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
-        form: CreateQuizForm = Depends(CreateQuizForm.form)):
+    request: Request,
+    quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+    form: CreateQuizForm = Depends(CreateQuizForm.form),
+):
     """Creates a new quiz and presents the button to start the quiz."""
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
@@ -48,8 +49,9 @@ async def create_quiz(
 
 @app.post("/find", response_class=HTMLResponse)
 async def go_to_quiz(
-        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
-        form: GoToQuizForm = Depends(GoToQuizForm.form)):
+    quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+    form: GoToQuizForm = Depends(GoToQuizForm.form),
+):
     """Finsd a given quiz and redirects to it if found, otherwise redirects to error page."""
     quiz = quiz_repo.get(form.quiz_id)
 
@@ -61,7 +63,9 @@ async def go_to_quiz(
 
 
 @app.get("/quiz/{quiz_id}", response_class=HTMLResponse)
-async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+async def get_quiz(
+    request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]
+):
     """Returns the requested quiz."""
     quiz = quiz_repo.get(quiz_id)
 
@@ -87,7 +91,9 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
 
 
 @app.get("/quiz/{quiz_id}/next", response_class=HTMLResponse)
-async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]):
+async def get_quiz(
+    request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]
+):
     """Returns the next question for the given quiz, or the quiz complete notification if complete."""
     quiz = quiz_repo.get(quiz_id)
     if quiz is None:
@@ -124,11 +130,12 @@ async def get_quiz(request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo
 
 @app.post("/quiz/{quiz_id}/{question_id}/submit", response_class=HTMLResponse)
 async def submit_question_answer(
-        request: Request,
-        quiz_id: str,
-        question_id: int,
-        quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
-        form: SubmitAnswerForm = Depends(SubmitAnswerForm.form)):
+    request: Request,
+    quiz_id: str,
+    question_id: int,
+    quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
+    form: SubmitAnswerForm = Depends(SubmitAnswerForm.form),
+):
     """Updates the answer for the question and returns the next question in the list."""
 
     quiz = quiz_repo.get(quiz_id)

@@ -75,7 +75,9 @@ class QuizRepo:
 
         questions: list[Question] = []
         for question_id, option_rows in rows_by_question_id.items():
-            options = [dict(text=x["option_text"], correct=x["option_correct"]) for x in option_rows]
+            options = [
+                dict(text=x["option_text"], correct=x["option_correct"]) for x in option_rows
+            ]
 
             correct_answer_index = 0
             for i, option in enumerate(options):
@@ -102,7 +104,7 @@ class QuizRepo:
 
         with DBSession(self.database) as db:
             # Determine if the correct answer was selected
-            db.cursor.execute(option_stmt, (question_id, ))
+            db.cursor.execute(option_stmt, (question_id,))
             options = [x[0] for x in db.cursor.fetchall()]
             correct_index = options.index(True)
 
@@ -145,12 +147,24 @@ class QuizRepo:
             result = db.cursor.fetchone()
             if not result:
                 return None
-            return Question(id=result[1], text=result[2], options=[], correct_answer='', correct_answer_index=-1)
+            return Question(
+                id=result[1], text=result[2], options=[], correct_answer="", correct_answer_index=-1
+            )
 
 
 if __name__ == "__main__":
-    q1 = Question(text="What is 1 + 1", options=["1", "2", "3", "4"], correct_answer="2", correct_answer_index=1)
-    q2 = Question(text="What is 2 + 2", options=["1", "2", "3", "4"], correct_answer="4", correct_answer_index=3)
+    q1 = Question(
+        text="What is 1 + 1",
+        options=["1", "2", "3", "4"],
+        correct_answer="2",
+        correct_answer_index=1,
+    )
+    q2 = Question(
+        text="What is 2 + 2",
+        options=["1", "2", "3", "4"],
+        correct_answer="4",
+        correct_answer_index=3,
+    )
     test_quiz = Quiz(prompt="Can you do basic maths?", questions=[q1, q2])
 
     __db = Database.default(create_tables=True)
