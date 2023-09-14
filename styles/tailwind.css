@@ -5,12 +5,14 @@
 @layer base {
     input[type="text"],
     input[type="number"],
-    input[type="search"] {
+    input[type="search"],
+    input[type="password"] {
         @apply rounded;
     }
 
     input[type="text"],
-    input[type="search"] {
+    input[type="search"],
+    input[type="password"] {
         @apply w-full;
     }
 }

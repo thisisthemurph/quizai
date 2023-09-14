@@ -1,3 +1,4 @@
+bcrypt
 black
 fastapi
 jinja2

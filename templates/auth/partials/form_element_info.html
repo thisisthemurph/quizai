@@ -1,0 +1,8 @@
+<!--suppress XmlDuplicatedId -->
+{% if message %}
+<p id="{{ element_id }}" class="form-info">
+    {{ message }}
+</p>
+{% else %}
+<p id="{{ element_id }}" style="display: none;" class="form-info">&nbsp;</p>
+{% endif %}

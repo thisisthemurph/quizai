@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 import urllib.parse
 from starlette import status
 
+import routers
 from models.form_models import CreateQuizForm, SubmitAnswerForm, GoToQuizForm
 from persistance.database import Database
 from persistance.quiz_repo import QuizRepo
@@ -176,6 +177,9 @@ async def submit_question_answer(
 async def not_found(request: Request, message: str = None):
     ctx = dict(request=request, message=message or "The resource could not be found")
     return templates.TemplateResponse("not-found-page.html", ctx)
+
+
+app.include_router(routers.auth_router)
 
 
 async def main():
