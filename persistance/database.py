@@ -55,7 +55,16 @@ class Database:
     def create_tables_if_not_exists(self):
         create_uuid_extension = """CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\""""
 
-        create_quiz_table = """
+        create_users_table = """
+        CREATE TABLE IF NOT EXISTS users (
+        	id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+        	name TEXT NOT NULL,
+        	email TEXT NOT NULL,
+        	password TEXT NOT NULL,
+        	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );"""
+
+        create_quizzes_table = """
         CREATE TABLE IF NOT EXISTS quizzes (
             id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
             prompt TEXT NOT NULL,
@@ -88,7 +97,8 @@ class Database:
 
         with DBSession(self) as db:
             db.cursor.execute(create_uuid_extension)
-            db.cursor.execute(create_quiz_table)
+            db.cursor.execute(create_users_table)
+            db.cursor.execute(create_quizzes_table)
             db.cursor.execute(create_questions_table)
             db.cursor.execute(create_options_table)
             db.conn.commit()
