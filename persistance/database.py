@@ -1,6 +1,8 @@
 import os
+from typing import Type
 
 import psycopg2
+from psycopg2.extras import RealDictCursor, DictCursor
 from psycopg2 import extensions
 from dotenv import load_dotenv
 
@@ -64,6 +66,21 @@ class Database:
         	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );"""
 
+        create_sessions_table = """
+        CREATE TABLE IF NOT EXISTS sessions (
+            id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id uuid NOT NULL,
+            login_time TIMESTAMP NOT NULL,
+            expiration_time TIMESTAMP NOT NULL,
+            ip_address VARCHAR(32),
+            user_agent TEXT DEFAULT NULL,
+            valid BOOL NOT NULL DEFAULT true,
+            CONSTRAINT fk_users
+                FOREIGN KEY(user_id)
+                    REFERENCES users(id)
+                        ON DELETE CASCADE
+        );"""
+
         create_quizzes_table = """
         CREATE TABLE IF NOT EXISTS quizzes (
             id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -98,6 +115,7 @@ class Database:
         with DBSession(self) as db:
             db.cursor.execute(create_uuid_extension)
             db.cursor.execute(create_users_table)
+            db.cursor.execute(create_sessions_table)
             db.cursor.execute(create_quizzes_table)
             db.cursor.execute(create_questions_table)
             db.cursor.execute(create_options_table)
@@ -111,7 +129,9 @@ class ConnectionCursor:
 
 
 class DBSession:
-    def __init__(self, db: Database, cursor_factory=None):
+    def __init__(
+        self, db: Database, cursor_factory: Type[RealDictCursor] | Type[DictCursor] | None = None
+    ):
         self.db = db
         self.conn = None
         self.cursor = None

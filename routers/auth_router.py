@@ -8,7 +8,7 @@ from starlette import status
 
 from auth import Auth
 from persistance.database import Database
-from persistance.repositories.user_repo import UserRepo
+from persistance.repositories import UserRepo, SessionRepo
 
 
 class SignUpForm(BaseModel):
@@ -29,14 +29,31 @@ class SignUpForm(BaseModel):
         return self.__dict__
 
 
+class SignInForm(BaseModel):
+    email: str
+    password: str
+
+    @classmethod
+    def form(
+        cls,
+        email: Annotated[str, Form()],
+        password: Annotated[str, Form()],
+    ):
+        return cls(email=email, password=password)
+
+    def dict(self, **kwargs):
+        return self.__dict__
+
+
 router = APIRouter(prefix="/auth")
 templates = Jinja2Templates(directory="templates")
 
 
-def auth_repo_param() -> Auth:
+def auth_repo_params() -> Auth:
     db = Database.default()
     user_repo = UserRepo(db)
-    return Auth(user_repo)
+    session_repo = SessionRepo(db)
+    return Auth(user_repo, session_repo)
 
 
 @router.get("/sign_up", response_class=HTMLResponse, tags=["auth"])
@@ -47,9 +64,10 @@ async def sign_up_page(request: Request):
 
 @router.post("/sign_up", response_class=HTMLResponse, tags=["auth"])
 async def sign_up(
-        request: Request,
-        auth: Annotated[Auth, Depends(auth_repo_param)],
-        form: SignUpForm = Depends(SignUpForm.form)):
+    request: Request,
+    auth: Annotated[Auth, Depends(auth_repo_params)],
+    form: SignUpForm = Depends(SignUpForm.form),
+):
     result = auth.sign_up(**form.dict())
 
     if result.is_err():
@@ -63,3 +81,31 @@ async def sign_up(
 async def sign_in_page(request: Request):
     ctx = dict(request=request)
     return templates.TemplateResponse("auth/sign_in.html", ctx)
+
+
+@router.post("/sign_in", response_class=HTMLResponse, tags=["auth"])
+def sign_in(
+    request: Request,
+    auth: Annotated[Auth, Depends(auth_repo_params)],
+    form: SignInForm = Depends(SignInForm.form),
+):
+    result = auth.sign_in(
+        form.email,
+        form.password,
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent"),
+    )
+    if result.is_err():
+        raise HTTPException(status_code=400, detail=result.err_value or "Unable to sign in")
+
+    user, session = result.ok_value
+    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+    response.set_cookie(
+        key="session",
+        value=session.id,
+        httponly=True,
+        secure=False,
+        max_age=15 * 60,
+    )
+
+    return response
