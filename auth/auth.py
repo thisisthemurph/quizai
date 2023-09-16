@@ -3,7 +3,7 @@ from result import Ok, Err, Result
 
 import auth.cryptographic_fns as crypto
 from models import UserModel, SessionModel
-from persistance.database import DBSession, Database
+from persistance.database import Database
 from persistance.repositories import UserRepo, SessionRepo
 
 
@@ -31,7 +31,7 @@ class Auth:
     ) -> Result[tuple[UserModel, SessionModel], str]:
         generic_auth_err = "Email and password combination does not match any users"
 
-        user_result = self.user_repo.get(email)
+        user_result = self.user_repo.get_by_email(email)
 
         if user_result.is_err():
             return user_result
