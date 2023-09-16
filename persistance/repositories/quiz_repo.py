@@ -1,3 +1,5 @@
+from typing import Optional
+
 import psycopg2.extras
 
 from models import Quiz, Question
@@ -15,15 +17,15 @@ class QuizRepo:
     def __init__(self, database: Database):
         self.database = database
 
-    def create(self, quiz: Quiz) -> Quiz:
+    def create(self, quiz: Quiz, user_id: Optional[str] = None) -> Quiz:
         """Creates a placeholder entry for a Quiz and returns the id"""
         quiz_id: str
-        quiz_stmt = "INSERT INTO quizzes (prompt) VALUES (%s) RETURNING id;"
+        quiz_stmt = "INSERT INTO quizzes (owner_id, prompt) VALUES (%s, %s) RETURNING id;"
         question_stmt = "INSERT INTO questions (quiz_id, text) VALUES (%s, %s) RETURNING id;"
         options_stmt = "INSERT INTO options (question_id, text, correct) VALUES (%s, %s, %s);"
 
         with DBSession(self.database) as db:
-            db.cursor.execute(quiz_stmt, (quiz.prompt,))
+            db.cursor.execute(quiz_stmt, (user_id, quiz.prompt))
             quiz_id = db.cursor.fetchone()[0]
 
             for question in quiz.questions:
@@ -98,19 +100,24 @@ class QuizRepo:
 
         return Quiz(id=quiz_id, prompt=quiz_prompt, questions=questions)
 
-    def answer(self, quiz_id: str, question_id: int, option_index: int) -> bool:
+    def answer(self, quiz_id: str, question_id: int, option_index: int, user_id: str) -> bool:
         option_stmt = "SELECT correct FROM options WHERE question_id = %s ORDER BY id;"
-        update_stmt = "UPDATE questions SET answered_correct = %s WHERE quiz_id = %s AND id = %s;"
-
+        
+        persist_answer_stmt = """
+        INSERT INTO user_quiz_answers (user_id, quiz_id, question_id, correct)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (user_id, quiz_id, question_id)
+            DO UPDATE SET correct = %s;"""
+        
         with DBSession(self.database) as db:
             # Determine if the correct answer was selected
             db.cursor.execute(option_stmt, (question_id,))
             options = [x[0] for x in db.cursor.fetchall()]
             correct_index = options.index(True)
-
+            
             # Persist if the answer was correct or not
             is_correct = option_index == correct_index
-            db.cursor.execute(update_stmt, (is_correct, quiz_id, question_id))
+            db.cursor.execute(persist_answer_stmt, (user_id, quiz_id, question_id, is_correct, is_correct))
             db.conn.commit()
 
             return is_correct
@@ -169,5 +176,5 @@ if __name__ == "__main__":
 
     __db = Database.default(create_tables=True)
     repo = QuizRepo(__db)
-    identifier = repo.create(test_quiz)
+    identifier = repo.create(test_quiz, None)
     print(identifier, type(identifier))

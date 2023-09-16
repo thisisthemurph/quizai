@@ -1,5 +1,6 @@
 import psycopg2.extras
 from result import Ok, Err, Result
+from psycopg2.extras import RealDictCursor
 
 from models import UserModel
 from persistance.database import Database, DBSession
@@ -9,24 +10,34 @@ class UserRepo:
     def __init__(self, database: Database):
         self.database = database
 
-    def get(self, email: str) -> Result[UserModel, str]:
+    def get_by_email(self, email: str) -> Result[UserModel, str]:
         stmt = "SELECT id, name, email, password FROM users WHERE email = %s LIMIT 1;"
 
-        with DBSession(self.database, psycopg2.extras.RealDictCursor) as db:
+        with DBSession(self.database, RealDictCursor) as db:
             db.cursor.execute(stmt, (email,))
             user_details = db.cursor.fetchone()
 
             if not user_details:
                 return Err("A user with the email address could not be found")
 
-            user = UserModel(
-                id=user_details["id"],
-                name=user_details["name"],
-                email=user_details["email"],
-                password=user_details["password"],
-            )
+            return Ok(UserModel(**user_details))
 
-            return Ok(user)
+    def get_by_session(self, session_id: str) -> Result[UserModel, str]:
+        stmt = """
+        SELECT u.id, u.name, u.email, u.password, u.created_at
+        FROM users u
+        JOIN sessions s ON u.id = s.user_id
+        WHERE s.id = %s
+        LIMIT 1;"""
+
+        with DBSession(self.database, RealDictCursor) as db:
+            db.cursor.execute(stmt, (session_id,))
+            user_details = db.cursor.fetchone()
+
+            if not user_details:
+                return Err("User session not found")
+
+            return Ok(UserModel(**user_details))
 
     def user_exists(self, email: str) -> Result[None, str]:
         stmt = """SELECT CASE WHEN COUNT(*) > 0 THEN true ELSE false END AS user_exists

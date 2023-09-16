@@ -9,6 +9,7 @@ from starlette import status
 from auth import Auth
 from persistance.database import Database
 from persistance.repositories import UserRepo, SessionRepo
+from routers.router_params import auth_repo_param
 
 
 class SignUpForm(BaseModel):
@@ -49,13 +50,6 @@ router = APIRouter(prefix="/auth")
 templates = Jinja2Templates(directory="templates")
 
 
-def auth_repo_params() -> Auth:
-    db = Database.default()
-    user_repo = UserRepo(db)
-    session_repo = SessionRepo(db)
-    return Auth(user_repo, session_repo)
-
-
 @router.get("/sign_up", response_class=HTMLResponse, tags=["auth"])
 async def sign_up_page(request: Request):
     ctx = dict(request=request)
@@ -65,7 +59,7 @@ async def sign_up_page(request: Request):
 @router.post("/sign_up", response_class=HTMLResponse, tags=["auth"])
 async def sign_up(
     request: Request,
-    auth: Annotated[Auth, Depends(auth_repo_params)],
+    auth: Annotated[Auth, Depends(auth_repo_param)],
     form: SignUpForm = Depends(SignUpForm.form),
 ):
     result = auth.sign_up(**form.dict())
@@ -86,7 +80,7 @@ async def sign_in_page(request: Request):
 @router.post("/sign_in", response_class=HTMLResponse, tags=["auth"])
 def sign_in(
     request: Request,
-    auth: Annotated[Auth, Depends(auth_repo_params)],
+    auth: Annotated[Auth, Depends(auth_repo_param)],
     form: SignInForm = Depends(SignInForm.form),
 ):
     result = auth.sign_in(

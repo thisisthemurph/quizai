@@ -3,7 +3,7 @@ import os
 from typing import Annotated
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Cookie
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -12,19 +12,34 @@ import urllib.parse
 from starlette import status
 
 import routers
+from models import UserModel
 from models.form_models import CreateQuizForm, SubmitAnswerForm, GoToQuizForm
 from persistance.database import Database
-from persistance.quiz_repo import QuizRepo
+
+from persistance.repositories import QuizRepo, SessionRepo, UserRepo
 from quiz_builder import QuizBuilder
+from routers.router_params import quiz_repo_param, auth_repo_param
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-def quiz_repo_param() -> QuizRepo:
-    db = Database.default()
-    return QuizRepo(db)
+@app.middleware("http")
+async def ansure_current_user_middleware(request: Request, call_next):
+    """Ensures there is a current_user object on the request state"""
+    request.state.current_user = None
+    session_id = request.cookies.get("session")
+
+    if session_id:
+        database = Database.default()
+        user_repo = UserRepo(database)
+        result = user_repo.get_by_session(session_id)
+
+        if result.is_ok():
+            request.state.current_user = result.ok_value
+
+    return await call_next(request)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -42,7 +57,9 @@ async def create_quiz(
     """Creates a new quiz and presents the button to start the quiz."""
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
-    saved_quiz = quiz_repo.create(quiz)
+
+    user_id = request.state.current_user.id if request.state.current_user else None
+    saved_quiz = quiz_repo.create(quiz, user_id)
 
     ctx = dict(request=request, quiz_id=saved_quiz.id, prompt=saved_quiz.prompt)
     return templates.TemplateResponse("partials/quiz-created.html", ctx)
@@ -138,9 +155,10 @@ async def submit_question_answer(
     form: SubmitAnswerForm = Depends(SubmitAnswerForm.form),
 ):
     """Updates the answer for the question and returns the next question in the list."""
+    current_user: UserModel = request.state.current_user
 
     quiz = quiz_repo.get(quiz_id)
-    answered_correctly = quiz_repo.answer(quiz_id, question_id, form.option)
+    answered_correctly = quiz_repo.answer(quiz_id, question_id, form.option, current_user.id)
     current_question_index = quiz.get_question_index(question_id)
     next_question_index = current_question_index + 1
     counts = quiz_repo.get_results(quiz_id)
