@@ -83,9 +83,14 @@ class Database:
 
         create_quizzes_table = """
         CREATE TABLE IF NOT EXISTS quizzes (
-            id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-            prompt TEXT NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        	id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        	owner_id UUID,
+        	prompt TEXT NOT NULL,
+        	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        	CONSTRAINT fk_users
+        		FOREIGN KEY (owner_id)
+        			REFERENCES users(id)
+        				ON DELETE SET NULL -- keep the quiz when the user is deleted
         );"""
 
         create_questions_table = """
@@ -112,6 +117,26 @@ class Database:
                         ON DELETE CASCADE
         );"""
 
+        create_user_quiz_answers_table = """
+        CREATE TABLE IF NOT EXISTS user_quiz_answers (
+        	user_id UUID NOT NULL,
+        	quiz_id UUID NOT NULL,
+        	question_id INT NOT NULL,
+        	correct BOOL NOT NULL,
+        	CONSTRAINT fk_users
+        		FOREIGN KEY(user_id)
+        			REFERENCES users(id)
+        				ON DELETE CASCADE,
+        	CONSTRAINT fk_quizzes
+        		FOREIGN KEY(quiz_id)
+        			REFERENCES quizzes(id)
+        				ON DELETE CASCADE,
+        	CONSTRAINT fk_questions
+        		FOREIGN KEY(question_id)
+        			REFERENCES questions(id)
+        				ON DELETE CASCADE
+        );"""
+
         with DBSession(self) as db:
             db.cursor.execute(create_uuid_extension)
             db.cursor.execute(create_users_table)
@@ -119,6 +144,7 @@ class Database:
             db.cursor.execute(create_quizzes_table)
             db.cursor.execute(create_questions_table)
             db.cursor.execute(create_options_table)
+            db.cursor.execute(create_user_quiz_answers_table)
             db.conn.commit()
 
 
