@@ -1,4 +1,4 @@
-{% macro icon(name, w=none, h=none, class='') %}
+{% macro icon(name, w=none, h=none, class='', element_id=none) %}
     {% set icon_path = '/icons/' + name + '.svg' %}
     
     {% if w == none or h == none %}

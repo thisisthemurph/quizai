@@ -10,11 +10,13 @@
     <script src="https://unpkg.com/htmx.org@1.9.4" integrity="sha384-zUfuhFKKZCbHTY6aRR46gxiqszMk5tcHjsVFxnUo8VMus4kHGVdIYVbOYYNlKmHV" crossorigin="anonymous"></script>
 </head>
 <body>
-    <header class="flex justify-center p-4 border-b-2 border-slate-200">
+    <header class="flex justify-between items-center p-4 border-b-2 border-slate-200">
+        <p>&nbsp;</p>
         <a href="/" class="flex gap-2 items-center">
             {{ icon('academic-cap', class='w-12 h-12 text-blue-800') }}
             <h1 class="text-2xl text-blue-600">QuizAI</h1>
         </a>
+        {% include 'partials/nav.html' %}
     </header>
 
     {% block content %}

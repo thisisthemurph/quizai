@@ -1,0 +1,21 @@
+<nav>
+    <button onclick="toggleElementClass('nav-btn-icon', 'rotate-180'); toggleHiddenEement('nav-menu')">
+        {{ icon('bars-arrow-down', class='w-10 h-10 transition-all', element_id='nav-btn-icon') }}
+    </button>
+    <section id="nav-menu" class="hidden absolute right-10 top-20 bg-white border border-slate-40 rounded shadow-lg">
+        <ul>
+            <li>
+                <a href="/" class="inline-block w-full py-8 px-16 text-lg transition-colors hover:bg-slate-100">My Quizzes</a>
+            </li>
+            <li>
+                <a href="/n" class="inline-block w-full py-8 px-16 text-lg transition-colors hover:bg-slate-100">Recent Quizzes</a>
+            </li>
+            <li>
+                <a href="/" class="inline-block w-full py-8 px-16 text-lg transition-colors hover:bg-slate-100">Top Quizzes</a>
+            </li>
+            <li>
+                <a href="/auth/sign_in" class="inline-block w-full py-8 px-16 text-lg transition-colors hover:bg-slate-100">Log in</a>
+            </li>
+        </ul>
+    </section>
+</nav>
