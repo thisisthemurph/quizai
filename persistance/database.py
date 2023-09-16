@@ -98,7 +98,6 @@ class Database:
             id serial PRIMARY KEY,
             quiz_id uuid,
             text TEXT NOT NULL,
-            answered_correct BOOLEAN DEFAULT NULL,
             CONSTRAINT fk_quizzes
                 FOREIGN KEY(quiz_id)
                     REFERENCES quizzes(id)
