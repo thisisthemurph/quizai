@@ -55,11 +55,12 @@ async def create_quiz(
     form: CreateQuizForm = Depends(CreateQuizForm.form),
 ):
     """Creates a new quiz and presents the button to start the quiz."""
+    user_id = request.state.current_user.id if request.state.current_user else None
+
     builder = QuizBuilder(os.getenv("OPENAI_API_KEY"))
     quiz = builder.make_quiz(form.prompt, num_questions=form.count)
 
-    user_id = request.state.current_user.id if request.state.current_user else None
-    saved_quiz = quiz_repo.create(quiz, user_id)
+    saved_quiz = quiz_repo.save(quiz, user_id)
 
     ctx = dict(request=request, quiz_id=saved_quiz.id, prompt=saved_quiz.prompt)
     return templates.TemplateResponse("partials/quiz-created.html", ctx)
@@ -67,11 +68,13 @@ async def create_quiz(
 
 @app.post("/find", response_class=HTMLResponse)
 async def go_to_quiz(
+    request: Request,
     quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)],
     form: GoToQuizForm = Depends(GoToQuizForm.form),
 ):
     """Finsd a given quiz and redirects to it if found, otherwise redirects to error page."""
-    quiz = quiz_repo.get(form.quiz_id)
+    user_id = request.state.current_user.id if request.state.current_user else None
+    quiz = quiz_repo.get(form.quiz_id, user_id)
 
     if quiz is None:
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
@@ -85,16 +88,21 @@ async def get_quiz(
     request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]
 ):
     """Returns the requested quiz."""
-    quiz = quiz_repo.get(quiz_id)
+    user_id = request.state.current_user.id if request.state.current_user else None
+    quiz = quiz_repo.get(quiz_id, user_id)
 
     if quiz is None:
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
         return RedirectResponse(f"/not-found?message={message}")
 
     # TODO: Maybe this only needs to get the ID of the current question?
-    current_question = quiz_repo.get_current_question(quiz_id)
-    current_question_index = quiz.get_question_index(current_question.id)
-    counts = quiz_repo.get_results(quiz_id)
+    current_question_id_result = quiz_repo.get_current_question_id(quiz_id, user_id)
+    if current_question_id_result.is_err():
+        raise Exception(current_question_id_result.err_value)
+
+    current_question_id: int = current_question_id_result.ok_value
+    current_question_index = quiz.get_question_index(current_question_id) if current_question_id else 0
+    counts = quiz_repo.get_results(quiz_id, user_id)
 
     ctx = dict(
         request=request,
@@ -113,15 +121,22 @@ async def get_quiz(
     request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]
 ):
     """Returns the next question for the given quiz, or the quiz complete notification if complete."""
-    quiz = quiz_repo.get(quiz_id)
+    user_id = request.state.current_user.id if request.state.current_user else None
+    quiz = quiz_repo.get(quiz_id, user_id)
+
     if quiz is None:
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
         return RedirectResponse(f"/not-found?message={message}")
 
     # TODO: Maybe this only needs to get the ID of the current question?
-    current_question = quiz_repo.get_current_question(quiz_id)
-    if current_question is None:
-        counts = quiz_repo.get_results(quiz_id)
+    current_question_id_result = quiz_repo.get_current_question_id(quiz_id, user_id)
+    if current_question_id_result.is_err():
+        raise Exception(current_question_id_result.err_value)
+
+    current_question_id: int = current_question_id_result.ok_value
+    # TODO: There may be issues with this detection of the quiz being completed
+    if current_question_id is None:
+        counts = quiz_repo.get_results(quiz_id, user_id)
         ctx = dict(
             request=request,
             counts=counts,
@@ -131,8 +146,8 @@ async def get_quiz(
 
         return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
 
-    current_question_index = quiz.get_question_index(current_question.id)
-    counts = quiz_repo.get_results(quiz_id)
+    current_question_index = quiz.get_question_index(current_question_id)
+    counts = quiz_repo.get_results(quiz_id, user_id)
 
     ctx = dict(
         request=request,
