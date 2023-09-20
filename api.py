@@ -26,7 +26,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.middleware("http")
-async def ansure_current_user_middleware(request: Request, call_next):
+async def ensure_current_user_middleware(request: Request, call_next):
     """Ensures there is a current_user object on the request state"""
     request.state.current_user = None
     session_id = request.cookies.get("session")
