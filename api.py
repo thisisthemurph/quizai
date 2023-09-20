@@ -117,7 +117,7 @@ async def get_quiz(
 
 
 @app.get("/quiz/{quiz_id}/next", response_class=HTMLResponse)
-async def get_quiz(
+async def get_quiz_next_question(
     request: Request, quiz_id: str, quiz_repo: Annotated[QuizRepo, Depends(quiz_repo_param)]
 ):
     """Returns the next question for the given quiz, or the quiz complete notification if complete."""
@@ -128,14 +128,12 @@ async def get_quiz(
         message = urllib.parse.quote_plus("The quiz could not be found and may no longer exist.")
         return RedirectResponse(f"/not-found?message={message}")
 
-    # TODO: Maybe this only needs to get the ID of the current question?
-    current_question_id_result = quiz_repo.get_current_question_id(quiz_id, user_id)
-    if current_question_id_result.is_err():
-        raise Exception(current_question_id_result.err_value)
+    next_question_id_result = quiz_repo.get_current_question_id(quiz_id, user_id)
+    if next_question_id_result.is_err():
+        raise Exception(next_question_id_result.err_value)
 
-    current_question_id: int = current_question_id_result.ok_value
-    # TODO: There may be issues with this detection of the quiz being completed
-    if current_question_id is None:
+    next_question_id: int = next_question_id_result.ok_value
+    if next_question_id == -1:
         counts = quiz_repo.get_results(quiz_id, user_id)
         ctx = dict(
             request=request,
@@ -146,7 +144,7 @@ async def get_quiz(
 
         return templates.TemplateResponse("partials/quiz-completed-message.html", ctx)
 
-    current_question_index = quiz.get_question_index(current_question_id)
+    next_question_index = quiz.get_question_index(next_question_id)
     counts = quiz_repo.get_results(quiz_id, user_id)
 
     ctx = dict(
@@ -154,8 +152,8 @@ async def get_quiz(
         quiz=quiz,
         counts=counts,
         pct=int(counts.correct / len(quiz) * 100),
-        question=quiz.questions[current_question_index],
-        question_number=current_question_index + 1,
+        question=quiz.questions[next_question_index],
+        question_number=next_question_index + 1,
     )
 
     return templates.TemplateResponse("partials/question.html", ctx)
@@ -172,11 +170,11 @@ async def submit_question_answer(
     """Updates the answer for the question and returns the next question in the list."""
     current_user: UserModel = request.state.current_user
 
-    quiz = quiz_repo.get(quiz_id)
+    quiz = quiz_repo.get(quiz_id, current_user.id)
     answered_correctly = quiz_repo.answer(quiz_id, question_id, form.option, current_user.id)
     current_question_index = quiz.get_question_index(question_id)
     next_question_index = current_question_index + 1
-    counts = quiz_repo.get_results(quiz_id)
+    counts = quiz_repo.get_results(quiz_id, current_user.id)
     quiz_completed = current_question_index == len(quiz) - 1
 
     if not answered_correctly:

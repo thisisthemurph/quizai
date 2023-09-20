@@ -144,43 +144,61 @@ class QuizRepo:
             return QuizResults(count=counts[0], answered=counts[1], correct=counts[2])
 
     def get_current_question_id(self, quiz_id: str, user_id: str) -> Result[int, str]:
-        stmt = """
+        next_question_id_stmt = """
+        WITH last_answered AS (
+        	SELECT q.id quiz_id, qu.id last_question_id
+        	FROM quizzes q
+        	JOIN questions qu ON q.id = qu.quiz_id
+        	LEFT JOIN user_quiz_answers a ON qu.id = a.question_id
+        	WHERE q.id = %s
+        		AND a.user_id = %s
+        	ORDER BY qu.id DESC
+        	LIMIT 1
+        )
         SELECT qu.id question_id
-        FROM quizzes q
-        JOIN questions qu ON q.id = qu.quiz_id
-        LEFT JOIN user_quiz_answers a ON qu.id = a.question_id
-        WHERE
-            q.id = %s
-            AND a.correct IS NULL
-            AND a.user_id = %s
+        FROM questions qu
+        JOIN last_answered la ON qu.quiz_id = la.quiz_id
+        WHERE qu.id > la.last_question_id
         ORDER BY qu.id
         LIMIT 1;"""
 
         first_question_stmt = "SELECT qu.id question_id FROM questions qu WHERE qu.quiz_id = %s ORDER BY qu.id LIMIT 1;"
 
-        with DBSession(self.database, cursor_factory=RealDictCursor) as db:
-            db.cursor.execute(stmt, (quiz_id, user_id))
-            result = db.cursor.fetchone()
+        completed_quiz_stmt = """
+        SELECT COUNT(qu.id) total_count,
+        	SUM(CASE WHEN a.question_id IS NOT NULL THEN 1 ELSE 0 END) answered_count,
+        	CASE
+        		WHEN COUNT(qu.id) = SUM(CASE WHEN a.question_id IS NOT NULL THEN 1 ELSE 0 END)
+        		THEN true
+        		ELSE false
+        	END AS complete
+        FROM questions qu
+        LEFT JOIN user_quiz_answers a ON qu.id = a.question_id
+        WHERE qu.quiz_id = %s
+        	AND (a.user_id = %s OR a.user_id IS NULL)
+        GROUP BY qu.quiz_id;"""
 
-            if not result:
+        with DBSession(self.database, cursor_factory=RealDictCursor) as db:
+            db.cursor.execute(next_question_id_stmt, (quiz_id, user_id))
+            next_question_id_result = db.cursor.fetchone()
+
+            if not next_question_id_result:
+                # Check if the user has finished the quiz
+                db.cursor.execute(completed_quiz_stmt, (quiz_id, user_id))
+                completed_quiz_result = db.cursor.fetchone()
+                if completed_quiz_result["complete"]:
+                    return Ok(-1)
+
                 # The user has finished the quiz or there are no questions or there is no quiz
                 db.cursor.execute(first_question_stmt, (quiz_id,))
-                question_result = db.cursor.fetchone()
-                if not question_result:
+                first_question_result = db.cursor.fetchone()
+                if not first_question_result:
                     return Err("The quiz does not exist")
 
                 # Return the first question if the user has never answered a question in the quiz
-                return Ok(question_result["question_id"])
+                return Ok(first_question_result["question_id"])
 
-            return Ok(result["question_id"])
-
-            # return Question(
-            #     id=result["question_id"],
-            #     text=result["question_text"],
-            #     options=[],
-            #     correct_answer="",
-            #     correct_answer_index=-1,
-            # )
+            return Ok(next_question_id_result["question_id"])
 
 
 if __name__ == "__main__":
