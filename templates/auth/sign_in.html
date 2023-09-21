@@ -2,19 +2,5 @@
 {% block title %}Sign in{% endblock %}
 
 {% block content %}
-<form method="post" action="/auth/sign_in" class="simple-form p-8 sm:rounded-xl bg-violet-50 sm:shadow-xl sm:w-3/4 sm:p-16 sm:mx-auto sm:mt-16 md:w-1/2 lg:w-[30rem]">
-    <h2>Sign in</h2>
-    
-    <section>
-        <label for="email">Email</label>
-        <input type="text" name="email" id="email" />
-    </section>
-    
-    <section>
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password" />
-    </section>
-    
-    <button type="submit">Log in</button>
-</form>
+    {% include 'auth/partials/sign_in_form.html' %}
 {% endblock %}

@@ -72,9 +72,14 @@ async def sign_up(
 
 
 @router.get("/sign_in", response_class=HTMLResponse, tags=["auth"])
-async def sign_in_page(request: Request):
+async def sign_in_page(request: Request, htmx: bool = False):
     ctx = dict(request=request)
-    return templates.TemplateResponse("auth/sign_in.html", ctx)
+
+    return (
+        templates.TemplateResponse("auth/partials/sign_in_form.html", ctx)
+        if htmx
+        else templates.TemplateResponse("auth/sign_in.html", ctx)
+    )
 
 
 @router.post("/sign_in", response_class=HTMLResponse, tags=["auth"])

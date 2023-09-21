@@ -3,7 +3,7 @@ import os
 from typing import Annotated
 
 import uvicorn
-from fastapi import FastAPI, Depends, Cookie
+from fastapi import FastAPI, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -23,6 +23,46 @@ from routers.router_params import quiz_repo_param, auth_repo_param
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+NO_AUTH_GET_PATHS = [
+    "/",
+    "/auth/sign_in",
+    "/auth/sign_up",
+    "/auth/email_exists",
+    "/docs",
+    "/favicon.ico",
+    "/openapi.json",
+    "/redoc",
+]
+
+
+# POST paths that do not require authentication
+NO_AUTH_POST_PATHS = ["/auth/sign_in", "/auth/sign_up"]
+
+
+@app.middleware("http")
+async def auth_redirection_middleware(request: Request, call_next):
+    method = request.method
+    path = request.url.path
+
+    if method == "GET" and path.startswith("/static"):
+        return await call_next(request)
+
+    authenticated_user = request.state.current_user
+    if authenticated_user and method == "GET" and path == "/auth/sign_in":
+        return RedirectResponse("/")
+    elif authenticated_user:
+        return await call_next(request)
+    elif method == "GET" and path in NO_AUTH_GET_PATHS:
+        return await call_next(request)
+    elif method == "POST" and path in NO_AUTH_POST_PATHS:
+        return await call_next(request)
+
+    request.state.current_user = None
+    response = RedirectResponse("/auth/sign_in?htmx=true", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie("session")
+    return response
 
 
 @app.middleware("http")
@@ -101,7 +141,9 @@ async def get_quiz(
         raise Exception(current_question_id_result.err_value)
 
     current_question_id: int = current_question_id_result.ok_value
-    current_question_index = quiz.get_question_index(current_question_id) if current_question_id else 0
+    current_question_index = (
+        quiz.get_question_index(current_question_id) if current_question_id else 0
+    )
     counts = quiz_repo.get_results(quiz_id, user_id)
 
     ctx = dict(
