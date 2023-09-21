@@ -107,22 +107,24 @@ class QuizRepo:
 
     def answer(self, quiz_id: str, question_id: int, option_index: int, user_id: str) -> bool:
         option_stmt = "SELECT correct FROM options WHERE question_id = %s ORDER BY id;"
-        
+
         persist_answer_stmt = """
         INSERT INTO user_quiz_answers (user_id, quiz_id, question_id, correct)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (user_id, quiz_id, question_id)
             DO UPDATE SET correct = %s;"""
-        
+
         with DBSession(self.database) as db:
             # Determine if the correct answer was selected
             db.cursor.execute(option_stmt, (question_id,))
             options = [x[0] for x in db.cursor.fetchall()]
             correct_index = options.index(True)
-            
+
             # Persist if the answer was correct or not
             is_correct = option_index == correct_index
-            db.cursor.execute(persist_answer_stmt, (user_id, quiz_id, question_id, is_correct, is_correct))
+            db.cursor.execute(
+                persist_answer_stmt, (user_id, quiz_id, question_id, is_correct, is_correct)
+            )
             db.conn.commit()
 
             return is_correct
